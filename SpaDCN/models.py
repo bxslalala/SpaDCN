@@ -195,30 +195,20 @@ class SpaDCN(nn.Module):
             y_pred = kmeans.fit_predict(embedding)
 
         elif domain == 'mclust':
-            ari_max = 0
-            max_pca_num = 0
-            for i in range(6, 30):
-                pca_num = i
-                sc.pp.neighbors(adata_t, n_neighbors=10)
-                y_pred = mclust_R(adata_t, num_cluster=n_clusters, pca_num=pca_num)
-                adata.obs["pred"] = y_pred
-                adata.obs["pred"] = adata.obs["pred"].astype('category')
-                obs_df = adata.obs.dropna()
-                ARI = adjusted_rand_score(obs_df['pred'], obs_df['truth'])
+            
+            sc.pp.neighbors(adata_t, n_neighbors=10)
+            y_pred = mclust_R(adata_t, num_cluster=n_clusters)
+            adata.obs["pred"] = y_pred
+            adata.obs["pred"] = adata.obs["pred"].astype('category')
+            obs_df = adata.obs.dropna()
+            ARI = adjusted_rand_score(obs_df['pred'], obs_df['truth'])
 
-                adata= refine_label(adata)
-                ARI_refine = adjusted_rand_score(adata.obs['label_refined'], adata.obs['truth'])
-
-                if ARI > ari_max:
-                    ari_max = ARI
-                    max_pca_num = i
-                if ARI_refine > ari_max:
-                    ari_max = ARI_refine
-                    max_pca_num = i
+            adata= refine_label(adata)
+            ARI_refine = adjusted_rand_score(adata.obs['label_refined'], adata.obs['truth'])
 
             pca_num = max_pca_num
             sc.pp.neighbors(adata_t, n_neighbors=10)
-            y_pred = mclust_R(adata_t, num_cluster=n_clusters, pca_num=pca_num)
+            y_pred = mclust_R(adata_t, num_cluster=n_clusters)
             adata.obsm['SpaDCN'] = adata_t.obsm['emb_pca']
             adata.obs["pred"] = y_pred
             adata.obs["pred"] = adata.obs["pred"].astype('category')
